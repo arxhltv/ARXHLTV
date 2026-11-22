@@ -197,11 +197,19 @@ main.wrap{max-width:1180px}.hero,.major-card{background:linear-gradient(125deg,#
 
 <div class="modalback" id="userAuth"><div class="modal user-auth-modal"><div class="auth-brand">ARX<span>HLTV</span></div><div class="auth-tabs"><button class="auth-tab active" data-auth-mode="login">Sign in</button><button class="auth-tab" data-auth-mode="register">Sign up</button></div><div id="userLoginForm"><div class="field"><label>Username</label><input id="userLoginName" autocomplete="username" placeholder="Username"></div><div class="field"><label>Password</label><input id="userLoginPassword" type="password" autocomplete="current-password" placeholder="Password"></div><div class="remember-row"><label><input id="userRemember" type="checkbox" checked> Запомнить меня</label><span>ARXHLTV account</span></div><button class="btn primary auth-submit" id="userLoginGo" type="button">Sign in</button></div><div id="userRegisterForm" class="hidden"><div class="field"><label>Username</label><input id="userRegisterName" autocomplete="username" maxlength="24" placeholder="Username"></div><div class="field"><label>Password</label><input id="userRegisterPassword" type="password" autocomplete="new-password" placeholder="Минимум 8 символов"></div><div class="field"><label>Повтори пароль</label><input id="userRegisterConfirm" type="password" autocomplete="new-password" placeholder="Повтори пароль"></div><button class="btn primary auth-submit" id="userRegisterGo" type="button">Sign up</button></div><div class="auth-note">Пароль проверяется через защищённый verifier и не показывается администратору. Сайт сохраняет только ник, дату регистрации и локальную сессию.</div><button class="btn auth-admin" id="adminAccess" type="button">Вход администратора</button><button class="btn auth-secondary hidden" id="userSignOut" type="button">Sign out</button><button class="btn auth-secondary" id="userAuthClose" type="button">Закрыть</button><div class="msg auth-status" id="userAuthMsg"></div></div></div>
 <div class="modalback" id="login"><div class="modal"><h3>Вход администратора</h3><div class="field"><label>Email администратора</label><input id="adminEmail" type="email" autocomplete="username" placeholder="Email"></div><div class="field"><label>Пароль</label><input id="pass" type="password" autocomplete="current-password" placeholder="Пароль"></div><button class="btn primary" id="loginGo">Войти</button> <button class="btn" id="loginCancel">Отмена</button><div class="msg" id="loginMsg"></div></div></div>
-<script type="module">
+<script>
 // Firebase replaces only the backend. UI, rankings and backups remain unchanged.
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js';
-import {getAuth,signInWithEmailAndPassword,signOut,updatePassword} from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js';
-import {getDatabase,ref,get,onValue,runTransaction} from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js';
+// Initialize the bridge promise synchronously, before the site's classic script executes.
+window.__firebaseLoad = Promise.race([
+ (async()=>{
+ const [appMod,authMod,dbMod]=await Promise.all([
+  import('https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js'),
+  import('https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js')
+ ]);
+ const {initializeApp}=appMod;
+ const {getAuth,signInWithEmailAndPassword,signOut,updatePassword}=authMod;
+ const {getDatabase,ref,get,onValue,runTransaction}=dbMod;
 const firebaseConfig={
  apiKey:'AIzaSyDRYrlUt5MdbnyabFscIXUfJnuMkgh43Qs',
  authDomain:'arxhltv.firebaseapp.com',
@@ -249,7 +257,10 @@ function firebaseBridge(){
   })
  };
 }
-window.__firebaseLoad=Promise.resolve({createClient:firebaseBridge});
+return {createClient:firebaseBridge};
+ })(),
+ new Promise((_,reject)=>setTimeout(()=>reject(new Error('Превышено время загрузки Firebase SDK (12 секунд). Проверь доступ к www.gstatic.com.')),12000))
+]);
 </script>
 <script>
 const ADMIN_UID="22GcX0hp6agx6SpTL6IQ24Jrm993";
